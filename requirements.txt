@@ -1,0 +1,11 @@
+ultralytics
+opencv-python
+numpy
+filterpy
+scikit-image
+openpyxl
+cvzone
+matplotlib
+scipy
+flask
+pip-system-certs

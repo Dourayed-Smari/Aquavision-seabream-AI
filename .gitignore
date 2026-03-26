@@ -1,0 +1,38 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+myenv/
+venv/
+.env/
+
+# Data and Models (Too large for GitHub)
+*.pt
+*.weights
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# New Architecture folders
+weights/*
+data/*
+!weights/.gitkeep
+!data/.gitkeep
+!results/.gitkeep
+!web/.gitkeep
+
+# Temporary/Output Files
+Processed_*.avi
+My_results.mp4
+compare_output2.mp4
+bbbb_*.mp4
+Raw_footage*.mp4
+temp_*.xlsx
+output_tracking.mp4
+
+# OS generated files
+.DS_Store
+Thumbs.db
