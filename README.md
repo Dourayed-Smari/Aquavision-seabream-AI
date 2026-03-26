@@ -55,8 +55,5 @@ Due to GitHub's file size limits, the pre-trained weights are not included in th
 ## Authors
 - **Dourayed Smari** - *Lead Developer & AI Training*
 
-## Acknowledgments
-- **Alex Bewley** - Author of the [SORT algorithm](https://github.com/abewley/sort) used for real-time tracking.
-
 ## License
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
