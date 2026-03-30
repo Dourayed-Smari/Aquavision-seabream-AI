@@ -9,6 +9,12 @@ This project is an advanced automated system for **Sea-Bream** (Dorade) detectio
 - **CPU Anti-Lag & Slow-Mo Export**: Multi-threaded processing architecture ensures real-time stability, while silently exporting an automated **Slow-Motion MP4 (0.25x)** video and timestamped **CSV Data Logs** to the `/results` directory.
 - **Biomass Measurement (Upcoming)**: Architecture ready for pixel-to-gram allometric regression based on dynamic bounding box geometry extraction.
 
+## Model Specifications (`best+.pt`)
+This project relies on a custom YOLO Medium architecture trained intensively (11+ hours) on Kaggle specifically for Sea-Bream.
+- **Accuracy (mAP50)**: **~0.90** (90% Mean Average Precision) in highly complex, dense underwater environments.
+- **Native Resolution**: Trained at **1024x1024 px** to capture extremely distant and small silver flashes.
+- **Robustness**: Utilized "Empty Sea" negative learning (to eliminate background false positives on rocks/reflections) combined with heavy augmentations (Mosaic, Mixup, HSV shifts).
+
 ## Project Architecture
 The project is structured to separate the core detection logic, the future biomass calculation engine, and the web interface.
 
