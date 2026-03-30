@@ -4,20 +4,19 @@
 This project is an advanced automated system for **Sea-Bream** (Dorade) detection, counting, and biomass estimation. It leverages state-of-the-art computer vision to provide aquaculture managers with precise real-time analytics from video inputs.
 
 ### Key Features
-- **Precision Detection**: Powered by an **Advanced Sea-Bream YOLO Model** for accurate identification.
-- **Dynamic Tracking**: Implements the **SORT** (Simple Online and Realtime Tracking) algorithm to monitor individual fish movements and prevent count duplication. 
-- **Biomass Measurement**: Real-time estimation of length (cm) and weight (gm) based on calibrated anatomical ratios.
-- **Analytics Dashboard**: Instant analytics (Count, Total Biomass, Average Size) and professional result videos (stored in the `/results` directory).
+- **Ultra-High Sensitivity Detection**: Powered by a custom Kaggle-trained **YOLO Medium Model (`best+.pt`)** optimized for dense and distant Sea-Bream detection (1024px, 0.01 threshold).
+- **Masterclass Cinematic Tracking**: Uses heavily customized **ByteTrack** with an extended memory buffer (8s survival) and a non-overlapping "Sniper" UI (centroids & short tracking tails) to cleanly visualize tracking without clutter.
+- **CPU Anti-Lag & Slow-Mo Export**: Multi-threaded processing architecture ensures real-time stability, while silently exporting an automated **Slow-Motion MP4 (0.25x)** video and timestamped **CSV Data Logs** to the `/results` directory.
+- **Biomass Measurement (Upcoming)**: Architecture ready for pixel-to-gram allometric regression based on dynamic bounding box geometry extraction.
 
 ## Project Architecture
 The project is structured to separate the core detection logic, the future biomass calculation engine, and the web interface.
 
 ```text
 AquaVision/
-├── Mainfishcount.py      # Multi-threaded real-time entry point
-├── core/                 # Core processing modules
-│   ├── sort.py           # SORT tracking implementation
-│   └── biomass.py        # Future biomass calculation module
+├── core/                 # Core logic and settings
+│   ├── Mainfishcount.py  # Multi-threaded master application
+│   └── custom_bytetrack.yaml # Heavy-duty tracking configurations
 ├── web/                  # Web dashboard (Future implementation)
 │   ├── app.py            # Main web entry point
 │   ├── static/           # CSS/JS assets
@@ -44,13 +43,13 @@ AquaVision/
 ## Usage
 Run the main script:
 ```bash
-python Mainfishcount.py
+python core/Mainfishcount.py
 ```
 
 ## Note on Model Weights
 Due to GitHub's file size limits, the pre-trained weights are not included in this repository. 
 > [!IMPORTANT]
-> Please download the weights (`best@.pt`) from [https://drive.google.com/file/d/1pJOQwtCTu1EqEeNMrZNgPDasq22wAbMb/view] and place them in the `/weights` directory.
+> Please download the custom expert weights (`best+.pt`) from Google Drive and place them in the `/weights` directory.
 
 ## Authors
 - **Dourayed Smari** - *Lead Developer & AI Training*
