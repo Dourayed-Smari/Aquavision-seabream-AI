@@ -49,7 +49,7 @@ python core/Mainfishcount.py
 ## Note on Model Weights
 Due to GitHub's file size limits, the pre-trained weights are not included in this repository. 
 > [!IMPORTANT]
-> Please download the custom expert weights (`best+.pt`) from Google Drive and place them in the `/weights` directory.
+> Please download the custom expert weights (`best+.pt`) from [https://drive.google.com/file/d/1BokebUAWlyLInyMWO0Htdl-LMFQwedU9/view?usp=drive_link] and place them in the `/weights` directory.
 
 ## Authors
 - **Dourayed Smari** - *Lead Developer & AI Training*
