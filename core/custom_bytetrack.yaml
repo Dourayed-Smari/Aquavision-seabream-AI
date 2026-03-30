@@ -1,0 +1,10 @@
+# Custom ByteTrack parameters for Sea-Bream Tracking
+# Optimized for high density and boundary stability
+
+tracker_type: bytetrack  # tracker type, ['bytetrack']
+track_high_thresh: 0.1 
+track_low_thresh: 0.05  
+new_track_thresh: 0.1  
+track_buffer: 240       # Mémoire longue durée (8 secondes) pour les longues disparitions
+match_thresh: 0.9       
+fuse_score: True        
