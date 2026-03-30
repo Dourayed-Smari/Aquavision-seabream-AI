@@ -13,7 +13,7 @@ import cvzone
 from collections import defaultdict
 
 MODEL_PATH = "weights/best+.pt" # Modèle PyTorch Original
-VIDEO_PATH = "data/dorada15.mp4" 
+VIDEO_PATH = "data/dorada9.mp4" 
 OUTPUT_DIR = "results"
 REPORT_DIR = "results"
 TRACKER_CFG = "core/custom_bytetrack.yaml"
@@ -49,14 +49,14 @@ class SingleCamFishCounter:
         self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         
         self.timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        # Output Video Speed Control (Ralenti physique 0.25x pour le fichier exporté)
-        slow_mo_fps = self.fps * 0.25
+        # Vitesse d'export normale (Le ralenti sera généré dynamiquement image par image)
+        export_fps = self.fps
         
         # Professional Video Writer (MP4 format)
         self.writer = cv2.VideoWriter(
             os.path.join(OUTPUT_DIR, f"AquaVision_Report_{self.timestamp}.mp4"),
             cv2.VideoWriter_fourcc(*'mp4v'), 
-            slow_mo_fps,
+            export_fps,
             (960, 540)
         )
         
@@ -111,7 +111,18 @@ class SingleCamFishCounter:
                 self.frame = resized
                 self.new_frame_event.set() # Notify display thread
 
-            self.writer.write(resized)
+            # --- Effet "Time-Ramping" (Ralenti Cinématique Extrême) ---
+            # Uniquement pour le fichier MP4 (L'affichage en direct reste parfaitement normal)
+            num_writes = 1
+            if self.processed_frames < self.fps * 5:    # Phase 1: De 0 à 5 secondes
+                num_writes = 8  # Ultra-Ralenti EXTREME (0.12x la vitesse normale)
+            elif self.processed_frames < self.fps * 10: # Phase 2: De 5 à 10 secondes
+                num_writes = 4  # Ralenti classique (0.25x)
+            else:
+                num_writes = 1  # Phase 3: Vitesse Classique (1.0x) pour le reste
+                
+            for _ in range(num_writes):
+                self.writer.write(resized)
 
             self.processed_frames += 1
 
