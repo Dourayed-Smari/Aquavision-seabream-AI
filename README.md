@@ -16,10 +16,10 @@ The system utilizes a multi-stage pipeline designed for robustness in challengin
 Powered by a custom-trained **YOLOv8x** model optimized for the specific morphology of Sea Bream. The weights in `best+.pt` have been fine-tuned to handle overlapping schools and low-visibility conditions.
 
 ### 2. Multi-Object Tracking (MOT)
-AquaVision integrates several tracking architectures tested during development:
-*   **ByteTrack (Default)** : Chosen for its high performance and stability in dense fish schools.
-*   **BoT-SORT** : Tested for improved identity preservation during occlusions.
-*   **SU-T (Scale-aware Unscented Tracker)** : A specialized experimental implementation using **Unscented Kalman Filters (UKF)** to handle the complex scale variations of moving fish.
+The current stable release is strictly powered by **ByteTrack**. Other architectures were tested but are currently **inactive** and preserved for research purposes only:
+*   **ByteTrack (STABLE | DEFAULT)** : High performance and identity stability in dense schools.
+*   **BoT-SORT (Testing Phase)** : Observed improved identity but higher latency. Currently inactive.
+*   **SU-T (Experimental Research)** : Scale-aware Unscented Tracker using UKF filters. Specialized research module, currently inactive in the main branch (see `core/trackers/`).
 
 ### 3. Deep-Z Biomass Estimation (v2.4)
 Our proprietary biomass module solves the 2D depth ambiguity through:
@@ -42,7 +42,7 @@ Our proprietary biomass module solves the 2D depth ambiguity through:
     ```
 3.  **Download AI Weights** : 
     Download the trained model `best+.pt` and place it in the `weights/` directory.
-    🔗 **[DOWNLOAD MODEL (Google Drive Link Here)]** *(Please update with your link)*
+    🔗 **[DOWNLOAD MODEL (Google Drive)](https://drive.google.com/file/d/1BokebUAWlyLInyMWO0Htdl-LMFQwedU9/view?usp=drive_link)**
 
 ### 📈 Running the System
 ```bash
