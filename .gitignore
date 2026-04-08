@@ -1,35 +1,26 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+# AquaVision : GitIgnore (Sécurité Maximale v2.4.1)
 
-# Virtual Environment
+# 1. Dossiers Systèmes et Environnements (CRITIQUE)
 myenv/
 venv/
-.env/
+.env
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.vscode/
+.idea/
 
-# Data and Models (Too large for GitHub)
-*.pt
-*.weights
-*.mov
-*.mkv
+# 2. Données et Résultats (Autorisés par l'utilisateur pour l'encadrant)
+# Nous laissons data/ et results/ pour que l'encadrant puisse tester
+# Les fichiers très lourds (>100Mo) seraient automatiquement bloqués par GitHub
 
-# New Architecture folders
-weights/*
-!weights/.gitkeep
-!data/.gitkeep
-!results/.gitkeep
-!web/.gitkeep
+# 3. Rapports Confidentiels (Spécifique PFE - RESTE PRIVÉ)
+BIOMASS_REPORT.md
+PFE_MEMO_AQUAVISION.md
+PIPELINE_ARCHITECTURE.md
+SU_T_REPORT.md
+astuces.md
 
-# Temporary/Output Files
-Processed_*.avi
-My_results.mp4
-compare_output2.mp4
-bbbb_*.mp4
-Raw_footage*.mp4
-temp_*.xlsx
-output_tracking.mp4
-
-# OS generated files
-.DS_Store
-Thumbs.db
+# 4. Divers
+*.log
+tmp/
