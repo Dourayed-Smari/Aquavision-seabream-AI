@@ -6,5 +6,5 @@ track_high_thresh: 0.1
 track_low_thresh: 0.05  
 new_track_thresh: 0.1  
 track_buffer: 240       # Mémoire longue durée (8 secondes) pour les longues disparitions
-match_thresh: 0.9       
+match_thresh: 0.8       # Plus tolérant pour garder l'ID après une disparition
 fuse_score: True        

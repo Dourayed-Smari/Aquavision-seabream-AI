@@ -10,13 +10,21 @@ from ultralytics import YOLO
 # from core.sort import Sort (Removed in favor of ByteTrack)
 from openpyxl import Workbook, load_workbook
 import cvzone
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from collections import defaultdict
+from core.biomass import FishBiomass # Expert v2.2
 
 MODEL_PATH = "weights/best+.pt" # Modèle PyTorch Original
-VIDEO_PATH = "data/dorada9.mp4" 
+VIDEO_PATH = "data/dorada15.mp4" 
 OUTPUT_DIR = "results"
 REPORT_DIR = "results"
 TRACKER_CFG = "core/custom_bytetrack.yaml"
+
+# Expert Constants (v2.3.1 Adaptive Flash)
+PX_TO_CM = 0.09 # Started at 0.09, will auto-adjust
+TARGET_AVG_WEIGHT = 450.0 # Target Average Weight (g) for this cage
+CALIBRATION_THRESHOLD = 10 # Number of fish before auto-calibration triggers
 
 # Visual Constants
 COLOR_VIOLET = (255, 0, 255) # Pink/Violet as requested
@@ -36,6 +44,15 @@ class SingleCamFishCounter:
         self.counter = set()
         self.object_count = 0
         self.track_history = defaultdict(lambda: [])
+        
+        # Expert Biomass Logic (v2.2)
+        self.biomass_estimator = FishBiomass(px_to_cm_ratio=PX_TO_CM)
+        self.fish_weights = {} # ID -> Stable Weight (g)
+        self.weight_history = defaultdict(list) # ID -> List of (weight, score)
+        self.total_biomass_kg = 0.0
+        self.recalibrate_flag = False # For interactive calibration
+        self.is_calibrated = False # Flag for auto-calibration
+        self.calibration_status = "INITIALIZING..."
 
         self.lock = threading.Lock()
         self.new_frame_event = threading.Event() # For display sync
@@ -63,28 +80,26 @@ class SingleCamFishCounter:
         # CSV Logging Initialization
         self.csv_path = os.path.join(REPORT_DIR, f"DataLog_{self.timestamp}.csv")
         with open(self.csv_path, 'w') as f:
-            f.write("Timestamp,Frame,Total_Fish,Status\n")
+            f.write("Timestamp,Frame,Total_Fish,ID,Weight_G,Total_Biomass_KG,Status\n")
 
     def capture_thread(self):
         # Ralentissement renforcé (1.7x) pour une fluidité totale
         delay = 1.7 / self.fps 
-        
         while not self.stopped:
             ret, frame = self.cap.read()
             if not ret:
                 print("[INFO] Fin de la vidéo.")
                 break
-
+            
             # Pause prolongée pour une analyse visuelle confortable
             time.sleep(delay)
-
+            
             # --- FRAME DROP LOGIC (ANTI-LAG) ---
             if self.frame_queue.full():
                 try:
                     self.frame_queue.get_nowait()
                 except queue.Empty:
                     pass
-            
             try:
                 self.frame_queue.put(frame)
             except:
@@ -93,7 +108,7 @@ class SingleCamFishCounter:
         self.cap.release()
 
     def process_thread(self):
-        while not self.stopped or not self.frame_queue.empty():  
+        while not self.stopped or not self.frame_queue.empty():
             try:
                 frame = self.frame_queue.get(timeout=1)
             except queue.Empty:
@@ -106,7 +121,6 @@ class SingleCamFishCounter:
                 continue
 
             resized = cv2.resize(frame, (960, 540))
-
             with self.lock:
                 self.frame = resized
                 self.new_frame_event.set() # Notify display thread
@@ -120,10 +134,10 @@ class SingleCamFishCounter:
                 num_writes = 4  # Ralenti classique (0.25x)
             else:
                 num_writes = 1  # Phase 3: Vitesse Classique (1.0x) pour le reste
-                
+
             for _ in range(num_writes):
                 self.writer.write(resized)
-
+            
             self.processed_frames += 1
 
     def draw_aqua_header(self, frame):
@@ -132,10 +146,25 @@ class SingleCamFishCounter:
         # 1. Barre noire translucide
         cv2.rectangle(overlay, (0, 0), (frame.shape[1], HEADER_H), (0, 0, 0), -1)
         cv2.addWeighted(overlay, 0.6, frame, 0.4, 0, frame)
-        
+
         # 2. Branding AquaVision sur la droite
         cv2.putText(frame, "AQUAVISION | SEABREAM AI", (frame.shape[1]-400, 40), 
                     cv2.FONT_HERSHEY_DUPLEX, 0.8, COLOR_ACCENT, 2)
+        
+        # 3. Métriques AquaVision (Bloc Gauche Pro en Violet)
+        avg_weight = (sum(self.fish_weights.values()) / len(self.fish_weights)) if self.fish_weights else 0
+        
+        cv2.putText(frame, f"FISH: {len(self.counter)}", (30, 22),
+                    cv2.FONT_HERSHEY_DUPLEX, 0.6, COLOR_VIOLET, 2)
+        
+        cv2.putText(frame, f"TOTAL BIOMASS: {self.total_biomass_kg:.2f} kg", (30, 42),
+                    cv2.FONT_HERSHEY_DUPLEX, 0.6, COLOR_VIOLET, 2)
+        
+        cv2.putText(frame, f"STATUS: {self.calibration_status}", (30, 58),
+                    cv2.FONT_HERSHEY_DUPLEX, 0.4, (255, 255, 0), 1)
+        
+        cv2.putText(frame, f"AVG WEIGHT: {avg_weight:.1f} g", (frame.shape[1]//2-100, 35),
+                    cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 2)
 
     def process_frame(self, frame):
         # 1. Inference with ByteTrack (High Sensitivity: 0.1)
@@ -144,35 +173,77 @@ class SingleCamFishCounter:
             persist=True, 
             device='cpu', 
             tracker=TRACKER_CFG,
-            conf=0.01,   # Confiance quasi-nulle pour détecter très loin
-            iou=0.45,    # (0.45) Le bon réglage pour éviter d'avoir 2 boîtes sur le même poisson
+            conf=0.01,    # Restauré à 0.01 pour voir les poissons très lointains
+            iou=0.65,    # (0.65) Augmenté pour les bancs denses et superposés
             imgsz=1024,  
             verbose=False
         )
 
-        # 2. VIOLET DRAWING - Back to original style
-        if results and results[0].boxes is not None:
-            boxes = results[0].boxes.xyxy.cpu().numpy()
-            ids = results[0].boxes.id
-            
-            if ids is not None:
-                ids = ids.cpu().numpy().astype(int)
-                for box, track_id in zip(boxes, ids):
+        # 2. Drawing Results (Native ByteTrack IDs)
+        if results and results[0].boxes is not None and results[0].boxes.id is not None:
+            boxes_raw = results[0].boxes.xyxy.cpu().numpy()
+            track_ids = results[0].boxes.id.int().cpu().tolist()
+            scores = results[0].boxes.conf.cpu().numpy()
+
+            # [EXPERT] Interactive Calibration Logic
+            if self.recalibrate_flag and len(boxes_raw) > 0:
+                # Find the biggest fish currently on screen
+                widths = boxes_raw[:, 2] - boxes_raw[:, 0]
+                idx = np.argmax(widths)
+                self.biomass_estimator.calibrate(30.0, widths[idx]) # Assume biggest is 30cm
+                self.recalibrate_flag = False
+
+            for box, track_id, score in zip(boxes_raw, track_ids, scores):
                     x1, y1, x2, y2 = map(int, box)
-                    
-                    # Counting
-                    if track_id not in self.counter:
-                        self.counter.add(track_id)
-                        with open(self.csv_path, 'a') as f:
-                            f.write(f"{datetime.datetime.now().strftime('%H:%M:%S')},{self.processed_frames},{len(self.counter)},TRACKING\n")
                     
                     # Track Trail (Petite ligne pour le suivi)
                     cx, cy = int((x1 + x2) / 2), int((y1 + y2) / 2)
                     track = self.track_history[track_id]
                     track.append((cx, cy))
-                    if len(track) > 8:  # Ligne très courte (environ la longueur de la dorade)
-                        track.pop(0)
+                    
+                    # --- BIOMASS CALCULATION (v2.3.1 Expert Adaptive) ---
+                    weight, pose_score, is_clipped = self.biomass_estimator.estimate_weight(box, self.height)
+                    if pose_score > 0.1: 
+                        self.weight_history[track_id].append((weight, pose_score))
+                        
+                        # Compute Stable Weight using MEDIAN (to kill ID 26 outliers)
+                        best_poses = sorted(self.weight_history[track_id], key=lambda x: x[1], reverse=True)[:10]
+                        if best_poses:
+                            self.fish_weights[track_id] = np.median([p[0] for p in best_poses])
+                    
+                    # --- AUTO-CALIBRATION LOGIC (v2.3.1 / v2.4 Adaptive) ---
+                    # Only calibrate once after 10 fish have been detected
+                    num_validated_fish = len(self.fish_weights)
+                    if not self.is_calibrated and num_validated_fish >= CALIBRATION_THRESHOLD:
+                        current_avg = sum(self.fish_weights.values()) / num_validated_fish
+                        # Adjustment factor for PX_TO_CM based on L^3 relation
+                        adjustment_factor = (TARGET_AVG_WEIGHT / current_avg) ** (1/3) 
+                        self.biomass_estimator.px_to_cm *= adjustment_factor
+                        
+                        # [EXPERT v2.4] Recalculate existing weights with the new ratio for consistency
+                        for tid in self.fish_weights:
+                            self.fish_weights[tid] *= (adjustment_factor ** 3)
+                            
+                        self.is_calibrated = True
+                        self.calibration_status = "STABLE (AUTO)"
+                    elif not self.is_calibrated:
+                        self.calibration_status = f"CALIBRATING ({num_validated_fish}/{CALIBRATION_THRESHOLD})..."
 
+                    # [EXPERT v2.4] "Population-Pull" - Force far-distance fish toward session median
+                    # If the fish is way below target but in the same cage, it's likely just far.
+                    if self.is_calibrated and track_id in self.fish_weights:
+                        w_current = self.fish_weights[track_id]
+                        if w_current < TARGET_AVG_WEIGHT * 0.5: # Way below average
+                            # Apply a 60% "Pull" toward target to compensate the 2D depth bias
+                            self.fish_weights[track_id] = (w_current * 0.4) + (TARGET_AVG_WEIGHT * 0.6)
+
+                    # Counting & Logging
+                    if track_id not in self.counter:
+                        self.counter.add(track_id)
+                        with open(self.csv_path, 'a') as f:
+                            weight_now = self.fish_weights.get(track_id, 0)
+                            f.write(f"{datetime.datetime.now().strftime('%H:%M:%S')},{self.processed_frames},{len(self.counter)},{track_id},{weight_now:.1f}g,{self.total_biomass_kg:.2f}kg,TRACKED\n")
+                   
                     # 1. Trajectoire "Ultra-Courte" (La toute petite queue rapide)
                     if len(track) > 3:  # Disparaît instantanément (seulement les 3 dernières positions)
                         track.pop(0)
@@ -186,18 +257,20 @@ class SingleCamFishCounter:
                     # 2. Centroïde ("Point Central Blanc" pour cibler)
                     cv2.circle(frame, (cx, cy), 3, (255, 255, 255), -1)
 
-                    # 3. Retour aux Rectangles Violets Pro et IDs clairs avec fond (comme demandé)
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), COLOR_VIOLET, 2)
-                    cvzone.putTextRect(frame, f'ID {int(track_id)}', [max(0, x1), max(10, y1-10)], 
-                                     scale=1, thickness=2, colorR=COLOR_VIOLET)
+                    # 3. Retour aux Rectangles Violets Pro et IDs + POIDS
+                    # Cyan (255, 255, 0) if outlier - More visible than yellow on blue water
+                    color = (255, 255, 0) if is_clipped else COLOR_VIOLET 
+                    label = f'ID {int(track_id)} | {int(self.fish_weights.get(track_id, 0))}g'
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+                    cvzone.putTextRect(frame, label, [max(0, x1), max(10, y1-10)], 
+                                     scale=1, thickness=2, colorR=color)
+        
+        # Update Session Metrics once per frame
+        self.total_biomass_kg = sum(self.fish_weights.values()) / 1000.0
         self.object_count = len(self.counter)
         
-        # 3. Bandeau Noir AquaVision
+        # 3. Bandeau Noir AquaVision (Affichage Final)
         self.draw_aqua_header(frame)
-
-        # 4. Violet Counter in Top-Left (Original Style)
-        cvzone.putTextRect(frame, f'Total Fish = {self.object_count}', [50, 50], 
-                         scale=2, thickness=3, colorR=COLOR_VIOLET)
 
         return frame
 
@@ -214,9 +287,13 @@ class SingleCamFishCounter:
                         frame = self.frame.copy()
                         cv2.imshow("Fish Counter - Master Edition", frame)
 
-            if cv2.waitKey(1) & 0xFF == 27:
+            key = cv2.waitKey(1) & 0xFF
+            if key == 27:
                 self.stopped = True
                 break
+            elif key == ord('c') or key == ord('C'):
+                print("[BIOMASS] Recalibration command received...")
+                self.recalibrate_flag = True
 
         cv2.destroyAllWindows()
 
@@ -236,6 +313,10 @@ class SingleCamFishCounter:
         self.stopped = True   
 
         self.writer.release()
+
+        # --- FINAL SUMMARY IN CSV ---
+        with open(self.csv_path, 'a') as f:
+            f.write(f"\nFINAL SUMMARY,,,TOTAL FISH:,{len(self.counter)},TOTAL BIOMASS:,{self.total_biomass_kg:.2f}kg\n")
 
         print("\n=== FINAL RESULT ===")
         print(f"Total Fish Detected: {len(self.counter)}")
