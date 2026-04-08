@@ -13,7 +13,7 @@ AquaVision is an expert-grade aquaculture monitoring platform focused on the pre
 The system utilizes a multi-stage pipeline designed for robustness in challenging underwater environments:
 
 ### 1. Object Detection (YOLOv8)
-Powered by a custom-trained **YOLOv8x** model optimized for the specific morphology of Sea Bream. The weights in `best+.pt` have been fine-tuned to handle overlapping schools and low-visibility conditions.
+Powered by a custom-trained **YOLOv8m** model optimized for the specific morphology of Sea Bream. The weights in `best+.pt` were trained on **Kaggle** for over **11 hours** using a high-resolution input of **`imgsz=1024`**. This extensive training ensures high precision for detecting small features and overlapping individuals even in low-visibility underwater environments.
 
 ### 2. Multi-Object Tracking (MOT)
 The current stable release is strictly powered by **ByteTrack**. Other architectures were tested but are currently **inactive** and preserved for research purposes only:
