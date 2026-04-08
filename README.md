@@ -1,41 +1,67 @@
-# AquaVision : Sea-Bream AI Monitoring 🐟⚓
+# AquaVision : Sea-Bream AI Monitoring System 🐟⚓
 
-AquaVision is an advanced aquaculture monitoring system designed for the precision detection, tracking, and biomass estimation of Sea Bream (*Sparus aurata*).
+AquaVision is an expert-grade aquaculture monitoring platform focused on the precision counting, tracking, and biomass estimation of **Sea Bream** (*Sparus aurata*). This project represents a state-of-the-art implementation of computer vision applied to industrial aquaculture.
 
-![Banner](https://img.shields.io/badge/Status-Version_2.4_Stable-brightgreen)
-![Python](https://img.shields.io/badge/Python-3.8+-blue)
-![YOLOv8](https://img.shields.io/badge/AI-YOLOv8-blueviolet)
+[![Status](https://img.shields.io/badge/Version-2.4.2_Adaptive-brightgreen)](https://github.com/Dourayed-Smari/Aquavision-seabream-AI)
+[![Framework](https://img.shields.io/badge/AI-YOLOv8_|_OpenVino-blueviolet)](https://github.com/ultralytics/ultralytics)
+[![Tracking](https://img.shields.io/badge/Tracking-ByteTrack_|_SU--T-blue)](https://github.com/ifzhang/ByteTrack)
 
-## 🚀 Key Features
+---
 
-*   **Deep-Z Biomass Estimation (v2.4)** : Non-linear perspective correction and population-based weight synchronization for high precision even with 2D cameras.
-*   **Adaptive Auto-Calibration** : The system automatically learns the cage scale after 10 fish detections, ensuring consistency across different video sources.
-*   **High-Precision Tracking** : Powered by ByteTrack with custom biological filters (Pose-Score) to ensure only valid profiles are measured.
-*   **Time-Ramp Reporting** : Professional video exports with cinematic slow-motion during high-activity detections.
-*   **Interactive Calibration** : On-the-fly pixel-to-cm adjustment using reference objects (Hotkey 'C').
+## 🌊 Core Components of the Pipeline
 
-## 🛠️ Installation
+The system utilizes a multi-stage pipeline designed for robustness in challenging underwater environments:
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Dourayed-Smari/Aquavision-seabream-AI.git
-   ```
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Place your model in `weights/best+.pt`.
+### 1. Object Detection (YOLOv8)
+Powered by a custom-trained **YOLOv8x** model optimized for the specific morphology of Sea Bream. The weights in `best+.pt` have been fine-tuned to handle overlapping schools and low-visibility conditions.
 
-## 📈 Usage
+### 2. Multi-Object Tracking (MOT)
+AquaVision integrates several tracking architectures tested during development:
+*   **ByteTrack (Default)** : Chosen for its high performance and stability in dense fish schools.
+*   **BoT-SORT** : Tested for improved identity preservation during occlusions.
+*   **SU-T (Scale-aware Unscented Tracker)** : A specialized experimental implementation using **Unscented Kalman Filters (UKF)** to handle the complex scale variations of moving fish.
 
-Run the main counter script:
+### 3. Deep-Z Biomass Estimation (v2.4)
+Our proprietary biomass module solves the 2D depth ambiguity through:
+*   **Population-Pull Logic** : Normalizes individual weight estimates toward the session's lot median, ensuring biological consistency across the entire cage.
+*   **Hyperbolic Perspective Correction** : A 40% depth compensation factor ($K_{depth}$) that restores the true weight of far-away fish.
+*   **Adaptive Auto-Calibration** : Dynamic $PX \to CM$ ratio adjustment triggered after 10 validated detections.
+
+---
+
+## 🚀 Getting Started
+
+### 📦 Installation
+1.  **Clone the Repository** :
+    ```bash
+    git clone https://github.com/Dourayed-Smari/Aquavision-seabream-AI.git
+    ```
+2.  **Install Requirements** :
+    ```bash
+    pip install -r requirements.txt
+    ```
+3.  **Download AI Weights** : 
+    Download the trained model `best+.pt` and place it in the `weights/` directory.
+    🔗 **[DOWNLOAD MODEL (Google Drive Link Here)]** *(Please update with your link)*
+
+### 📈 Running the System
 ```bash
 python core/Mainfishcount.py
 ```
 
-## 🔬 Scientific Methodology
+---
 
-The system uses the allometric growth formula $W = a \cdot L^b$ with $a=0.012$ and $b=3.0$ for Sea Bream. It incorporates a **Population-Pull** force that normalizes individual measurements toward the lot median, overcoming 2D depth ambiguity.
+## 📑 Key Features
+*   **Adaptive UI** : Real-time status indicators (CALIBRATING vs STABLE) and high-visibility Cyan safety alerts.
+*   **Biological Safety Valve** : Automatic clipping of outliers (100g - 1200g) to prevent perspective-induced errors.
+*   **Cinematic Reporting** : Automatic export of results to `results/` with CSV logs and MP4 summaries including **Extreme Slow-Mo Ramping** on detection events.
 
 ---
-*Developed for the AquaVision SeaBream AI Project.*
+
+## ⚖️ Acknowledgments & Legal
+This project stands on the shoulders of giants. We wish to dedicate a special credit to the **SU-T (Scale-aware Unscented Tracker)** architecture. Our experimental phase deeply utilized the UKF-based orientation and scale estimation logic for high-precision underwater tracking.
+
+All tracking modules and biological constraints have been tailored for the specific needs of Mediterranean Sea Bream aquaculture.
+
+---
+*Maintained by Dourayed Smari | AquaVision AI Team 2026*
