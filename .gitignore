@@ -1,26 +1,56 @@
-# AquaVision : GitIgnore (Sécurité Maximale v2.4.1)
+# AquaVision : GitIgnore (Sécurité Maximale PFE)
 
-# 1. Dossiers Systèmes et Environnements (CRITIQUE)
+# 1. Environnements virtuels (CRITIQUE)
 myenv/
 venv/
+env/
 .env
+
+# 2. Fichiers Systèmes & Cache
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .vscode/
 .idea/
+*.log
+tmp/
 
-# 2. Données et Résultats (Autorisés par l'utilisateur pour l'encadrant)
-# Nous laissons data/ et results/ pour que l'encadrant puisse tester
-# Les fichiers très lourds (>100Mo) seraient automatiquement bloqués par GitHub
+# 3. Dossiers Temporaires / Debug
+scratch/
+__pycache__/
 
-# 3. Rapports Confidentiels (Spécifique PFE - RESTE PRIVÉ)
+# 4. Fichiers Confidentiels (Présentations, Storyboards, Stratégies)
+# -- Markdown (Notes, Plans, Storyboards) --
 BIOMASS_REPORT.md
 PFE_MEMO_AQUAVISION.md
 PIPELINE_ARCHITECTURE.md
 SU_T_REPORT.md
 astuces.md
+CANVA_STORYBOARD_EXPERT.md
+FINAL_PFE_STORYBOARD.md
+MASTER_PRESENTATION_STORYBOARD.md
+PRESENTATION_PLAN.md
+PRESENTATION_SLIDES.md
+OPTIMIZATION_STRATEGIES.md
+YOLOV8_POSE_ANALYSIS.md
 
-# 4. Divers
-*.log
-tmp/
+# -- Présentations (HTML & PPTX) --
+AQUAVISION_MASTERPIECE.html
+AQUAVISION_PRESENTATION.html
+ULTRA_DETAILED_PRESENTATION_CONTENT.html
+AQUAVISION_Presentation_Avancement.pptx
+
+# 5. Données et Résultats (Évite de bloquer GitHub avec des fichiers trop lourds)
+data/*
+!data/.gitkeep
+results/*
+!results/.gitkeep
+
+# 6. Modèles IA (Stockés sur Google Drive)
+weights/
+*.pt
+*.bin
+*.xml
+*.joblib
+*.pkl
+

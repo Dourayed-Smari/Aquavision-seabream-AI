@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaVision | H2A Groupe — Intelligence Biologique</title>
+    <link href="https://fonts.googleapis.com/css2?family=Michroma&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --cyan:    #06B6D4;
+        --purple:  #8B5CF6;
+        --emerald: #10b981;
+        --bg:      #020617;
+    }
+
+    body {
+        font-family: 'Outfit', sans-serif;
+        background: var(--bg);
+        color: #f1f5f9;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    /* ── Animated Ocean Background ─────────────────────── */
+    .ocean-bg {
+        position: fixed; inset: 0; z-index: 0;
+        background:
+            radial-gradient(ellipse at 20% 50%, rgba(6,182,212,0.08) 0%, transparent 60%),
+            radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.06) 0%, transparent 50%),
+            radial-gradient(ellipse at 60% 80%, rgba(16,185,129,0.05) 0%, transparent 50%),
+            linear-gradient(180deg, #020617 0%, #0f172a 50%, #020617 100%);
+        animation: oceanDrift 20s ease-in-out infinite alternate;
+    }
+    @keyframes oceanDrift {
+        0%   { filter: hue-rotate(0deg); }
+        100% { filter: hue-rotate(15deg); }
+    }
+
+    /* ── Floating Bubbles ───────────────────────────────── */
+    .bubbles {
+        position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    }
+    .bubble {
+        position: absolute; bottom: -80px;
+        border-radius: 50%;
+        background: rgba(6,182,212,0.06);
+        border: 1px solid rgba(6,182,212,0.12);
+        animation: rise linear infinite;
+    }
+    @keyframes rise {
+        0%   { transform: translateY(0)   scale(1);   opacity: 0; }
+        10%  { opacity: 1; }
+        90%  { opacity: .6; }
+        100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
+    }
+
+    /* ── Page Wrapper ───────────────────────────────────── */
+    .page {
+        position: relative; z-index: 10;
+        min-height: 100vh;
+        display: flex; flex-direction: column;
+        padding: 2rem;
+    }
+
+    /* ── Top Bar ────────────────────────────────────────── */
+    .topbar {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 4rem;
+    }
+    .logo-wrap { display: flex; align-items: center; gap: 1rem; }
+    .logo-icon {
+        width: 3rem; height: 3rem;
+        background: rgba(6,182,212,0.1);
+        border: 1px solid rgba(6,182,212,0.25);
+        border-radius: .85rem;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .logo-icon svg { width: 1.6rem; height: 1.6rem; stroke: #06B6D4; fill: none; stroke-width: 1.5; }
+    .logo-title {
+        font-family: 'Michroma', sans-serif;
+        font-size: 1.1rem; letter-spacing: -.03em;
+    }
+    .logo-sub {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .55rem; color: rgba(6,182,212,0.6);
+        letter-spacing: .25em; text-transform: uppercase; margin-top: 2px;
+    }
+    .badge-h2a {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .6rem;
+        color: rgba(148,163,184,0.5);
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: .5rem;
+        padding: .4rem .9rem;
+        letter-spacing: .1em;
+    }
+
+    /* ── Hero ───────────────────────────────────────────── */
+    .hero {
+        flex: 1;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        text-align: center;
+        padding: 2rem 1rem 4rem;
+        gap: 2.5rem;
+    }
+
+    .hero-tag {
+        display: inline-flex; align-items: center; gap: .5rem;
+        background: rgba(6,182,212,0.08);
+        border: 1px solid rgba(6,182,212,0.2);
+        border-radius: 999px;
+        padding: .4rem 1.25rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .65rem; color: var(--cyan);
+        letter-spacing: .15em; text-transform: uppercase;
+        animation: fadeDown .8s ease both;
+    }
+    .hero-tag .dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--cyan);
+        animation: pulse 1.5s ease infinite;
+    }
+
+    .hero-title {
+        font-family: 'Michroma', sans-serif;
+        font-size: clamp(2.5rem, 6vw, 5rem);
+        letter-spacing: -.04em;
+        line-height: 1.05;
+        background: linear-gradient(135deg, #ffffff 30%, #06B6D4 70%, #8B5CF6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: fadeDown .9s .1s ease both;
+    }
+
+    .hero-sub {
+        font-size: 1.1rem; font-weight: 300;
+        color: rgba(148,163,184,0.75);
+        max-width: 540px; line-height: 1.7;
+        animation: fadeDown 1s .2s ease both;
+    }
+
+    /* ── Upload Card ─────────────────────────────────────── */
+    .upload-card {
+        width: 100%; max-width: 560px;
+        background: rgba(15,23,42,0.7);
+        border: 1.5px dashed rgba(6,182,212,0.3);
+        border-radius: 2rem;
+        backdrop-filter: blur(20px);
+        padding: 3rem 2.5rem;
+        transition: all .35s ease;
+        animation: fadeUp 1s .3s ease both;
+        cursor: pointer;
+    }
+    .upload-card:hover,
+    .upload-card.dragover {
+        border-color: var(--cyan);
+        background: rgba(6,182,212,0.05);
+        box-shadow: 0 0 40px rgba(6,182,212,0.15);
+        transform: translateY(-4px);
+    }
+
+    .upload-icon {
+        width: 5rem; height: 5rem; margin: 0 auto 1.5rem;
+        background: rgba(6,182,212,0.08);
+        border: 1px solid rgba(6,182,212,0.2);
+        border-radius: 1.5rem;
+        display: flex; align-items: center; justify-content: center;
+        transition: transform .3s ease;
+    }
+    .upload-card:hover .upload-icon { transform: scale(1.1) rotate(-5deg); }
+    .upload-icon svg { width: 2.2rem; height: 2.2rem; stroke: var(--cyan); fill: none; stroke-width: 1.5; }
+
+    .upload-title {
+        font-size: 1.15rem; font-weight: 600;
+        margin-bottom: .5rem;
+        text-align: center;
+    }
+    .upload-sub {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .65rem; color: rgba(148,163,184,0.5);
+        letter-spacing: .1em; text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    /* Hidden file input + progress */
+    #file-input { display: none; }
+
+    #file-name-display {
+        text-align: center;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .72rem;
+        color: var(--emerald);
+        margin-bottom: 1.5rem;
+        min-height: 1.2rem;
+        transition: all .3s ease;
+    }
+
+    .btn-launch {
+        width: 100%;
+        background: linear-gradient(135deg, #06B6D4, #3b82f6);
+        box-shadow: 0 4px 20px rgba(6,182,212,0.3);
+        color: white; border: none;
+        border-radius: 1rem;
+        padding: 1rem 2rem;
+        font-family: 'Michroma', sans-serif;
+        font-size: .75rem; letter-spacing: .15em; text-transform: uppercase;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: .75rem;
+        transition: all .3s ease;
+        opacity: .5; pointer-events: none;
+    }
+    .btn-launch.active {
+        opacity: 1; pointer-events: all;
+    }
+    .btn-launch.active:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(6,182,212,0.5);
+    }
+    .btn-launch svg { width: 1.1rem; height: 1.1rem; }
+
+    /* Upload Progress Bar */
+    #upload-progress-wrap {
+        display: none;
+        margin-top: 1.5rem;
+    }
+    .progress-bar-bg {
+        height: 5px; background: rgba(255,255,255,0.06);
+        border-radius: 999px; overflow: hidden;
+    }
+    .progress-bar-fill {
+        height: 100%; width: 0%;
+        background: linear-gradient(90deg, #06B6D4, #3b82f6);
+        border-radius: 999px;
+        transition: width .3s ease;
+        box-shadow: 0 0 10px rgba(6,182,212,0.5);
+    }
+    #upload-status {
+        text-align: center; margin-top: .6rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .62rem; color: rgba(6,182,212,0.7);
+        animation: blink 1s ease infinite;
+    }
+    @keyframes blink { 50% { opacity: .4; } }
+
+    .format-hint {
+        text-align: center; margin-top: 1rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .58rem; color: rgba(148,163,184,0.3);
+        letter-spacing: .08em;
+    }
+
+    /* ── Feature Cards Row ───────────────────────────────── */
+    .features {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem; max-width: 720px; width: 100%;
+        animation: fadeUp 1.1s .5s ease both;
+    }
+    @media (max-width: 640px) { .features { grid-template-columns: 1fr; } }
+
+    .feat-card {
+        background: rgba(15,23,42,0.5);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        backdrop-filter: blur(12px);
+        transition: all .3s ease;
+    }
+    .feat-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(6,182,212,0.2);
+        background: rgba(15,23,42,0.7);
+    }
+    .feat-icon {
+        font-size: 1.5rem; margin-bottom: .75rem;
+    }
+    .feat-title {
+        font-family: 'Michroma', sans-serif;
+        font-size: .7rem; color: var(--cyan);
+        letter-spacing: .08em; margin-bottom: .4rem;
+    }
+    .feat-desc {
+        font-size: .78rem; color: rgba(148,163,184,0.6);
+        line-height: 1.6;
+    }
+
+    /* ── Animations ─────────────────────────────────────── */
+    @keyframes fadeDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(25px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: .5; transform: scale(1.4); }
+    }
+
+    /* ── Footer ── */
+    .footer {
+        text-align: center;
+        padding: 2.5rem 0 1.5rem;
+    }
+    .footer-copy {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .55rem; color: rgba(148,163,184,0.2);
+        letter-spacing: .12em; margin-bottom: 1rem;
+    }
+    .footer-author {
+        display: inline-flex; flex-direction: column;
+        align-items: center; gap: .3rem;
+    }
+    .footer-author .made-by {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .6rem; letter-spacing: .25em;
+        text-transform: uppercase;
+        color: rgba(6,182,212,0.4);
+    }
+    .footer-author .author-name {
+        font-family: 'Playfair Display', serif;
+        font-style: italic;
+        font-size: 1.35rem;
+        font-weight: 700;
+        background: linear-gradient(90deg,
+            rgba(255,255,255,0.5) 0%,
+            #06B6D4 30%,
+            #8B5CF6 60%,
+            rgba(255,255,255,0.5) 100%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: shimmer 4s linear infinite;
+        letter-spacing: .03em;
+    }
+    .footer-author .author-role {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .58rem; letter-spacing: .2em;
+        color: rgba(139,92,246,0.5);
+        text-transform: uppercase;
+    }
+    @keyframes shimmer {
+        0%   { background-position: 200% center; }
+        100% { background-position: -200% center; }
+    }
+    </style>
+</head>
+<body>
+
+<!-- Animated ocean background -->
+<div class="ocean-bg"></div>
+
+<!-- Floating bubbles -->
+<div class="bubbles" id="bubbles"></div>
+
+<!-- Main Page -->
+<div class="page">
+
+    <!-- Top Bar -->
+    <div class="topbar">
+        <div class="logo-wrap">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.628.281
+                             a2 2 0 01-1.606 0l-.694-.311a4 4 0 00-3.042 0l-2.232.916a2 2 0 00-1.068
+                             2.358 12 12 0 0022.593-5.435 12 12 0 01-7.217-4.436 4 4 0
+                             01-2.185-3.097l-.281-.628a2 2 0 010-1.606l.311-.694a4 4 0
+                             000-3.042l-.916-2.232a2 2 0 00-2.358-1.068 12 12 0 005.435 22.593z"/>
+                </svg>
+            </div>
+            <div>
+                <div class="logo-title">AQUAVISION <span style="color:#06B6D4;font-style:italic;font-weight:300;">CORE</span></div>
+                <div class="logo-sub">H2A Groupe · Hardware to Application</div>
+            </div>
+        </div>
+        <div class="badge-h2a">AI · Sea Bream Analytics</div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero">
+
+        <div class="hero-tag">
+            <span class="dot"></span>
+            Système IA de Surveillance Biologique Sous-Marine
+        </div>
+
+        <h1 class="hero-title">
+            Intelligence<br>Aquacole Avancée
+        </h1>
+
+        <p class="hero-sub">
+            Chargez votre vidéo sous-marine et laissez AquaVision détecter,
+            compter et estimer la biomasse de vos <em>Sparus aurata</em>
+            en temps réel grâce à YOLOv8 &amp; la Régression ML.
+        </p>
+
+        <!-- Upload Card -->
+        <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
+            <div class="upload-card" id="drop-zone">
+                <div class="upload-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                </div>
+                <p class="upload-title">Déposer votre vidéo ici</p>
+                <p class="upload-sub">ou cliquer pour parcourir</p>
+
+                <input type="file" id="file-input" name="video" accept="video/*">
+
+                <div id="file-name-display"></div>
+
+                <button type="submit" class="btn-launch" id="btn-launch">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Lancer l'Analyse IA
+                </button>
+
+                <div id="upload-progress-wrap">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progress-fill"></div>
+                    </div>
+                    <div id="upload-status">Chargement de la vidéo en cours...</div>
+                </div>
+
+                <p class="format-hint">MP4 · AVI · MOV · MKV &nbsp;|&nbsp; Max 500MB</p>
+            </div>
+        </form>
+
+        <!-- Feature Cards -->
+        <div class="features">
+            <div class="feat-card">
+                <div class="feat-icon">🎯</div>
+                <div class="feat-title">YOLOv8 Custom</div>
+                <div class="feat-desc">Détection haute précision entraînée spécifiquement sur <em>Sparus aurata</em></div>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon">📡</div>
+                <div class="feat-title">ByteTrack</div>
+                <div class="feat-desc">Suivi multi-objets persistant avec identification unique par individu</div>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon">🧠</div>
+                <div class="feat-title">Régression ML</div>
+                <div class="feat-desc">Estimation de la biomasse via modèle allométrique R²=0.983</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-copy">AquaVision Galaxy Edition v11.0 &nbsp;&middot;&nbsp; H2A Groupe &nbsp;&middot;&nbsp; 2026</div>
+        <div class="footer-author">
+            <span class="made-by">Made by</span>
+            <span class="author-name">Dourayed Smari</span>
+            <span class="author-role">AI &amp; Software Engineer</span>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ── Generate Bubbles ─────────────────────────── */
+const bubblesEl = document.getElementById('bubbles');
+const sizes  = [20, 35, 50, 70, 90, 120, 160];
+const delays = [0, 2, 4, 6, 8, 10, 14, 17, 20, 24];
+const durations = [12, 16, 20, 25, 30, 35];
+
+for (let i = 0; i < 18; i++) {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = sizes[Math.floor(Math.random() * sizes.length)];
+    b.style.cssText = `
+        width: ${size}px; height: ${size}px;
+        left: ${Math.random() * 100}%;
+        animation-duration: ${durations[Math.floor(Math.random() * durations.length)]}s;
+        animation-delay: ${delays[Math.floor(Math.random() * delays.length)]}s;
+    `;
+    bubblesEl.appendChild(b);
+}
+
+/* ── File Input Handler ───────────────────────── */
+const fileInput    = document.getElementById('file-input');
+const display      = document.getElementById('file-name-display');
+const btnLaunch    = document.getElementById('btn-launch');
+const dropZone     = document.getElementById('drop-zone');
+const uploadForm   = document.getElementById('upload-form');
+const progressWrap = document.getElementById('upload-progress-wrap');
+const progressFill = document.getElementById('progress-fill');
+
+fileInput.addEventListener('change', () => {
+    if (fileInput.files.length > 0) {
+        const f = fileInput.files[0];
+        display.textContent = '✓ ' + f.name + ' (' + (f.size / 1048576).toFixed(1) + ' MB)';
+        btnLaunch.classList.add('active');
+    }
+});
+
+/* ── Drag & Drop ─────────────────────────────── */
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        fileInput.files = files;
+        const f = files[0];
+        display.textContent = '✓ ' + f.name + ' (' + (f.size / 1048576).toFixed(1) + ' MB)';
+        btnLaunch.classList.add('active');
+    }
+});
+
+/* ── Drop Zone Click (avec protection anti-bubble) ─ */
+dropZone.addEventListener('click', (e) => {
+    // N'ouvrir le picker QUE si le clic vient de la zone elle-même
+    // ou ses éléments décoratifs (icône, titre, sous-titre)
+    // Bloquer si le clic vient du bouton ou de la progress bar
+    const ignored = ['btn-launch', 'upload-progress-wrap', 'progress-fill',
+                     'upload-status', 'file-name-display'];
+    if (ignored.some(id => e.target.closest('#' + id))) return;
+    if (e.target.closest('button')) return; // sécurité supplémentaire
+    fileInput.click();
+});
+
+/* ── Upload Progress (XHR for real progress) ─── */
+uploadForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // ← Bloque la remontée vers drop-zone
+    if (!fileInput.files.length) return;
+
+    progressWrap.style.display = 'block';
+    btnLaunch.style.display    = 'none';
+
+    const formData = new FormData();
+    formData.append('video', fileInput.files[0]);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/upload');
+
+    xhr.upload.addEventListener('progress', (ev) => {
+        if (ev.lengthComputable) {
+            const pct = Math.round((ev.loaded / ev.total) * 100);
+            progressFill.style.width = pct + '%';
+            document.getElementById('upload-status').textContent =
+                `Chargement... ${pct}% — Merci de patienter`;
+        }
+    });
+
+    xhr.addEventListener('load', () => {
+        progressFill.style.width = '100%';
+        document.getElementById('upload-status').textContent = '✓ Démarrage de l\'analyse IA...';
+        setTimeout(() => { window.location.href = '/dashboard'; }, 600);
+    });
+
+    xhr.addEventListener('error', () => {
+        document.getElementById('upload-status').textContent = '✗ Erreur réseau. Veuillez réessayer.';
+    });
+
+    xhr.send(formData);
+});
+</script>
+</body>
+</html>

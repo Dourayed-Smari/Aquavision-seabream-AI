@@ -18,7 +18,7 @@ import cvzone
 from collections import defaultdict
 
 MODEL_PATH = "weights/best+.pt" # Modèle PyTorch Original
-VIDEO_PATH = "data/dorada18.mp4" 
+VIDEO_PATH = "data/dorada15.mp4" 
 OUTPUT_DIR = "results"
 REPORT_DIR = "results"
 TRACKER_CFG = "core/custom_bytetrack.yaml"
