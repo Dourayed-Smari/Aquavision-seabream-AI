@@ -134,7 +134,24 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        animation: fadeDown .9s .1s ease both;
+        animation: fadeDown .9s .1s ease both, titleGlow 4s ease-in-out infinite alternate;
+        filter: drop-shadow(0 0 30px rgba(6,182,212,0.15));
+    }
+    @keyframes titleGlow {
+        0%   { filter: drop-shadow(0 0 20px rgba(6,182,212,0.1)); }
+        100% { filter: drop-shadow(0 0 45px rgba(139,92,246,0.25)) drop-shadow(0 0 80px rgba(6,182,212,0.1)); }
+    }
+    /* Glitch effect on hover */
+    .hero-title:hover {
+        animation: fadeDown .9s .1s ease both, glitch 0.4s steps(2) 1;
+    }
+    @keyframes glitch {
+        0%   { text-shadow: 2px 0 #06B6D4, -2px 0 #8B5CF6; transform: translate(0); }
+        20%  { text-shadow: -2px 0 #06B6D4, 2px 0 #8B5CF6; transform: translate(-2px, 1px); }
+        40%  { text-shadow: 2px 0 #8B5CF6, -2px 0 #06B6D4; transform: translate(2px, -1px); }
+        60%  { text-shadow: -1px 0 #06B6D4, 1px 0 #8B5CF6; transform: translate(0); }
+        80%  { text-shadow: 1px 0 #8B5CF6, -1px 0 #06B6D4; transform: translate(1px, 0); }
+        100% { text-shadow: none; transform: translate(0); }
     }
 
     .hero-sub {
@@ -147,21 +164,55 @@
     /* ── Upload Card ─────────────────────────────────────── */
     .upload-card {
         width: 100%; max-width: 560px;
-        background: rgba(15,23,42,0.7);
-        border: 1.5px dashed rgba(6,182,212,0.3);
+        background: rgba(15,23,42,0.75);
+        border: 1px solid transparent;
+        background-clip: padding-box;
         border-radius: 2rem;
-        backdrop-filter: blur(20px);
+        backdrop-filter: blur(24px);
         padding: 3rem 2.5rem;
-        transition: all .35s ease;
+        transition: all .4s ease;
         animation: fadeUp 1s .3s ease both;
         cursor: pointer;
+        position: relative;
+        box-shadow: 0 0 0 1px rgba(6,182,212,0.2), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    /* Crystal border effect */
+    .upload-card::before {
+        content: '';
+        position: absolute; inset: -1px;
+        border-radius: 2rem;
+        padding: 1px;
+        background: linear-gradient(135deg, rgba(6,182,212,0.4), rgba(139,92,246,0.1), rgba(6,182,212,0.05));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude;
+        pointer-events: none;
+        transition: opacity .4s ease;
+    }
+    .upload-card:hover::before { opacity: 2; }
+    /* Scanner line animation */
+    .upload-card::after {
+        content: '';
+        position: absolute; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgba(6,182,212,0.8), transparent);
+        top: 0; border-radius: 2rem 2rem 0 0;
+        opacity: 0;
+        transition: opacity .3s ease;
+    }
+    .upload-card.scanning::after {
+        opacity: 1;
+        animation: scanLine 1.5s ease-in-out;
+    }
+    @keyframes scanLine {
+        0%   { top: 0%;   opacity: 0; }
+        10%  { opacity: 1; }
+        90%  { opacity: 1; }
+        100% { top: 100%; opacity: 0; }
     }
     .upload-card:hover,
     .upload-card.dragover {
-        border-color: var(--cyan);
-        background: rgba(6,182,212,0.05);
-        box-shadow: 0 0 40px rgba(6,182,212,0.15);
-        transform: translateY(-4px);
+        box-shadow: 0 0 60px rgba(6,182,212,0.2), 0 0 0 1px rgba(6,182,212,0.4), inset 0 1px 0 rgba(6,182,212,0.1);
+        transform: translateY(-6px);
     }
 
     .upload-icon {
@@ -264,17 +315,27 @@
 
     .feat-card {
         background: rgba(15,23,42,0.5);
-        border: 1px solid rgba(255,255,255,0.06);
         border-radius: 1.25rem;
         padding: 1.5rem;
         backdrop-filter: blur(12px);
-        transition: all .3s ease;
+        transition: all .35s ease;
+        position: relative;
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.04);
     }
-    .feat-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(6,182,212,0.2);
-        background: rgba(15,23,42,0.7);
+    .feat-card::before {
+        content: '';
+        position: absolute; inset: -1px;
+        border-radius: 1.3rem;
+        padding: 1px;
+        background: linear-gradient(135deg, rgba(6,182,212,0.3) 0%, transparent 50%, rgba(139,92,246,0.2) 100%);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude;
+        opacity: 0;
+        transition: opacity .4s ease;
+        pointer-events: none;
     }
+    .feat-card:hover { transform: translateY(-6px); background: rgba(15,23,42,0.75); }
+    .feat-card:hover::before { opacity: 1; }
     .feat-icon {
         font-size: 1.5rem; margin-bottom: .75rem;
     }
@@ -349,9 +410,32 @@
         0%   { background-position: 200% center; }
         100% { background-position: -200% center; }
     }
+
+    /* ── Ambient Cursor ── */
+    #cursor-glow {
+        position: fixed; pointer-events: none; z-index: 9999;
+        width: 350px; height: 350px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(6,182,212,0.06) 0%, transparent 70%);
+        transform: translate(-50%, -50%);
+        transition: opacity .4s ease;
+        mix-blend-mode: screen;
+    }
+
+    /* ── Vignette overlay ── */
+    .vignette {
+        position: fixed; inset: 0; z-index: 1; pointer-events: none;
+        background: radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(2,6,23,0.7) 100%);
+    }
     </style>
 </head>
 <body>
+
+<!-- Ambient cursor glow -->
+<div id="cursor-glow"></div>
+
+<!-- Vignette -->
+<div class="vignette"></div>
 
 <!-- Animated ocean background -->
 <div class="ocean-bg"></div>
@@ -469,26 +553,47 @@
 </div>
 
 <script>
-/* ── Generate Bubbles ─────────────────────────── */
+/* ── Generate Bubbles (with parallax data) ────── */
 const bubblesEl = document.getElementById('bubbles');
-const sizes  = [20, 35, 50, 70, 90, 120, 160];
-const delays = [0, 2, 4, 6, 8, 10, 14, 17, 20, 24];
+const sizes     = [20, 35, 50, 70, 90, 120, 160];
+const delays    = [0, 2, 4, 6, 8, 10, 14, 17, 20, 24];
 const durations = [12, 16, 20, 25, 30, 35];
 
+const allBubbles = [];
 for (let i = 0; i < 18; i++) {
     const b = document.createElement('div');
     b.className = 'bubble';
-    const size = sizes[Math.floor(Math.random() * sizes.length)];
+    const size  = sizes[Math.floor(Math.random() * sizes.length)];
+    const depth = Math.random(); // 0=far, 1=close
     b.style.cssText = `
-        width: ${size}px; height: ${size}px;
-        left: ${Math.random() * 100}%;
-        animation-duration: ${durations[Math.floor(Math.random() * durations.length)]}s;
-        animation-delay: ${delays[Math.floor(Math.random() * delays.length)]}s;
+        width:${size}px; height:${size}px;
+        left:${Math.random()*100}%;
+        animation-duration:${durations[Math.floor(Math.random()*durations.length)]}s;
+        animation-delay:${delays[Math.floor(Math.random()*delays.length)]}s;
     `;
+    b.dataset.depth = depth;
     bubblesEl.appendChild(b);
+    allBubbles.push({ el: b, depth, baseLeft: parseFloat(b.style.left) });
 }
 
-/* ── File Input Handler ───────────────────────── */
+/* ── Ambient Cursor + Parallax Bubbles ───────── */
+const cursorGlow = document.getElementById('cursor-glow');
+let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
+
+document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX; mouseY = e.clientY;
+    // Move cursor glow
+    cursorGlow.style.left = mouseX + 'px';
+    cursorGlow.style.top  = mouseY + 'px';
+    // Parallax bubbles
+    const dx = (mouseX / window.innerWidth  - 0.5) * 30;
+    const dy = (mouseY / window.innerHeight - 0.5) * 15;
+    allBubbles.forEach(({ el, depth }) => {
+        el.style.transform = `translateX(${dx * depth}px) translateY(${dy * depth}px)`;
+    });
+});
+
+/* ── File Input Handler with Bio-Scanner ─────── */
 const fileInput    = document.getElementById('file-input');
 const display      = document.getElementById('file-name-display');
 const btnLaunch    = document.getElementById('btn-launch');
@@ -497,11 +602,38 @@ const uploadForm   = document.getElementById('upload-form');
 const progressWrap = document.getElementById('upload-progress-wrap');
 const progressFill = document.getElementById('progress-fill');
 
+function typewriter(element, text, speed = 40) {
+    element.textContent = '';
+    let i = 0;
+    const timer = setInterval(() => {
+        element.textContent += text[i];
+        i++;
+        if (i >= text.length) clearInterval(timer);
+    }, speed);
+}
+
+function triggerScanner(fileName, sizeMB) {
+    // Trigger scan animation on the upload card
+    dropZone.classList.add('scanning');
+    setTimeout(() => dropZone.classList.remove('scanning'), 1600);
+    // Typewriter effect for filename
+    const text = `✓ ${fileName} (${sizeMB} MB)`;
+    setTimeout(() => typewriter(display, text), 200);
+    // Activate launch button with entrance animation
+    btnLaunch.style.transform = 'scale(0.9)';
+    btnLaunch.style.opacity = '0';
+    btnLaunch.classList.add('active');
+    setTimeout(() => {
+        btnLaunch.style.transition = 'transform .5s cubic-bezier(.175,.885,.32,1.275), opacity .4s ease';
+        btnLaunch.style.transform = 'scale(1)';
+        btnLaunch.style.opacity   = '1';
+    }, 300);
+}
+
 fileInput.addEventListener('change', () => {
     if (fileInput.files.length > 0) {
         const f = fileInput.files[0];
-        display.textContent = '✓ ' + f.name + ' (' + (f.size / 1048576).toFixed(1) + ' MB)';
-        btnLaunch.classList.add('active');
+        triggerScanner(f.name, (f.size / 1048576).toFixed(1));
     }
 });
 
@@ -518,8 +650,7 @@ dropZone.addEventListener('drop', (e) => {
     if (files.length > 0) {
         fileInput.files = files;
         const f = files[0];
-        display.textContent = '✓ ' + f.name + ' (' + (f.size / 1048576).toFixed(1) + ' MB)';
-        btnLaunch.classList.add('active');
+        triggerScanner(f.name, (f.size / 1048576).toFixed(1));
     }
 });
 

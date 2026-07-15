@@ -29,7 +29,7 @@ class FishBiomass:
         # [EXPERT v3.0] ML Mode Setup
         self.MODE_CLASSIC = "CLASSIC"
         self.MODE_ML = "ML-OPTIMIZED"
-        self.current_mode = self.MODE_CLASSIC
+        self.current_mode = self.MODE_ML
         
         self.ml_coef = None
         self.ml_intercept = None

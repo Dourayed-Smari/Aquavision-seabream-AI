@@ -17,8 +17,8 @@ from openpyxl import Workbook, load_workbook
 import cvzone
 from collections import defaultdict
 
-MODEL_PATH = "weights/best+.pt" # Modèle PyTorch Original
-VIDEO_PATH = "data/dorada18.mp4" 
+MODEL_PATH = "weights/bestmodel1.pt" # Modèle Segmentation V2 (Test Pratique)
+VIDEO_PATH = "data/dorada16.mp4" 
 OUTPUT_DIR = "results"
 REPORT_DIR = "results"
 TRACKER_CFG = "core/custom_bytetrack.yaml"
@@ -39,7 +39,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 class SingleCamFishCounter:
     def __init__(self, model_path, video_source):
-        self.model = YOLO(model_path, task='detect')
+        self.model = YOLO(model_path, task='segment')
         self.video_source = video_source
         self.frame_queue = queue.Queue(maxsize=QUEUE_MAXSIZE)
 
@@ -96,16 +96,12 @@ class SingleCamFishCounter:
             # Pause prolongée pour une analyse visuelle confortable
             time.sleep(delay)
             
-            # --- FRAME DROP LOGIC (ANTI-LAG) ---
-            if self.frame_queue.full():
-                try:
-                    self.frame_queue.get_nowait()
-                except queue.Empty:
-                    pass
+            # --- STRICT SEQUENTIAL LOGIC (NO FRAME DROP) ---
+            # Bloque le thread de lecture si le CPU est en retard, forçant l'analyse de 100% des frames
             try:
-                self.frame_queue.put(frame)
-            except:
-                pass
+                self.frame_queue.put(frame, block=True, timeout=5)
+            except queue.Full:
+                print("[WARNING] Frame queue timeout. Le CPU est saturé.")
 
         self.cap.release()
 
@@ -181,9 +177,9 @@ class SingleCamFishCounter:
             persist=True, 
             device='cpu', 
             tracker=TRACKER_CFG,
-            conf=0.01,    # Restauré à 0.01 pour voir les poissons très lointains
-            iou=0.65,    # (0.65) Augmenté pour les bancs denses et superposés
-            imgsz=1024,  
+            conf=0.15,    # Seuil optimal validé (Filtre les masques bruités/instables)
+            iou=0.45,     # IOU serré pour limiter les collisions
+            imgsz=640,    # 640 est plus stable pour les tests en temps réel
             verbose=False
         )
 
@@ -192,6 +188,7 @@ class SingleCamFishCounter:
             boxes_raw = results[0].boxes.xyxy.cpu().numpy()
             track_ids = results[0].boxes.id.int().cpu().tolist()
             scores = results[0].boxes.conf.cpu().numpy()
+            masks = results[0].masks.xy if results[0].masks is not None else None
 
             # [EXPERT] Interactive Calibration Logic
             if self.recalibrate_flag and len(boxes_raw) > 0:
@@ -265,9 +262,23 @@ class SingleCamFishCounter:
                     # 2. Centroïde ("Point Central Blanc" pour cibler)
                     cv2.circle(frame, (cx, cy), 3, (255, 255, 255), -1)
 
-                    # 3. Retour aux Rectangles Violets Pro et IDs + POIDS
-                    # Cyan (255, 255, 0) if outlier - More visible than yellow on blue water
+                    # 3. Masques et Rectangles Violets Pro
                     color = (255, 255, 0) if is_clipped else COLOR_VIOLET 
+                    
+                    # Dessin du Masque (Effet Elite)
+                    if masks is not None:
+                        try:
+                            # On récupère le masque correspondant à cet index (YOLO les garde dans l'ordre des boîtes)
+                            idx = list(track_ids).index(track_id)
+                            mask_poly = np.array(masks[idx], dtype=np.int32)
+                            # Remplissage translucide du masque
+                            overlay_mask = frame.copy()
+                            cv2.fillPoly(overlay_mask, [mask_poly], color)
+                            cv2.addWeighted(overlay_mask, 0.3, frame, 0.7, 0, frame)
+                            # Contour fin du masque
+                            cv2.polylines(frame, [mask_poly], True, color, 1)
+                        except: pass
+
                     label = f'ID {int(track_id)} | {int(self.fish_weights.get(track_id, 0))}g'
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
                     cvzone.putTextRect(frame, label, [max(0, x1), max(10, y1-10)], 

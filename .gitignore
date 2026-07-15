@@ -1,26 +1,70 @@
-# AquaVision : GitIgnore (Sécurité Maximale PFE)
+# AquaVision repository guardrails
 
-# 1. Environnements virtuels (CRITIQUE)
+# Python environments and caches
 myenv/
 venv/
 env/
 .env
-
-# 2. Fichiers Systèmes & Cache
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .ipynb_checkpoints/
+
+# IDE and local tooling
 .vscode/
 .idea/
-*.log
+.agents/
+
+# OS and temporary files
 tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+~$*
 
-# 3. Dossiers Temporaires / Debug
+# Logs and debug artifacts
+*.log
+debug/
 scratch/
-__pycache__/
+temp_params.txt
+acronyms_extract.txt
+texput.log
 
-# 4. Fichiers Confidentiels (Présentations, Storyboards, Stratégies)
-# -- Markdown (Notes, Plans, Storyboards) --
+# Academic report and LaTeX project
+report/
+*.tex
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.lof
+*.lot
+*.toc
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Academic and private source material
+Sources/
+*.docx
+*.pptx
+*.pdf
+
+# Public docs allowed explicitly
+!README.md
+!LICENSE
+
+# Private markdown, notes, planning, memos
+AQUAVISION_TECH_GENEALOGY.md
+KAGGLE_TRAINING_LOG.md
+TECHNICAL_MEETING_RECAP.md
+WEEKLY_PROGRESS_REPORT.md
+pfe_pipeline_audit.md
 BIOMASS_REPORT.md
 PFE_MEMO_AQUAVISION.md
 PIPELINE_ARCHITECTURE.md
@@ -34,23 +78,35 @@ PRESENTATION_SLIDES.md
 OPTIMIZATION_STRATEGIES.md
 YOLOV8_POSE_ANALYSIS.md
 
-# -- Présentations (HTML & PPTX) --
+# Private HTML presentation/storyboard material
 AQUAVISION_MASTERPIECE.html
 AQUAVISION_PRESENTATION.html
 ULTRA_DETAILED_PRESENTATION_CONTENT.html
-AQUAVISION_Presentation_Avancement.pptx
 
-# 5. Données et Résultats (Évite de bloquer GitHub avec des fichiers trop lourds)
+# Runtime data and generated outputs
 data/*
 !data/.gitkeep
 results/*
-!results/.gitkeep
+results best model 1.0/
 
-# 6. Modèles IA (Stockés sur Google Drive)
-weights/
+# Model weights and training/export artifacts
+weights/*
 *.pt
+*.pth
+*.onnx
+*.engine
 *.bin
 *.xml
 *.joblib
 *.pkl
 
+# Release artifacts explicitly allowed
+!weights/bestmodel1.pt
+!results/AquaVision_Report_20260517_195747.mp4
+!results/AquaVision_Report_20260518_181423.mp4
+!results/AquaVision_Report_20260519_115305.mp4
+
+# Local duplicate/experimental project trees
+AquaVision-Segmentation-Lab/
+AquaVision-Segmentation-Lab/core/__pycache__/
+AquaVision-Segmentation-Lab/core/trackers/__pycache__/

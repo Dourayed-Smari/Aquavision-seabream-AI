@@ -10,9 +10,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.Mainfishcount import SingleCamFishCounter
 
 app = Flask(__name__)
-app.secret_key = "aquavision_h2a_2026"
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "CHANGE_ME_IN_PROD")
 
-MODEL_PATH  = "weights/best+.pt"
+MODEL_PATH  = "weights/bestmodel1.pt"
 UPLOAD_DIR  = "data"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 

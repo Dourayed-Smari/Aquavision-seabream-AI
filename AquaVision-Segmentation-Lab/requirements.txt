@@ -1,9 +1,0 @@
-ultralytics>=8.0.0
-opencv-python
-cvzone
-openpyxl
-numpy
-filterpy
-pyyaml
-scikit-learn
-joblib

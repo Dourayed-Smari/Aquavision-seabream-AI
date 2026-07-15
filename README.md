@@ -1,67 +1,76 @@
-# AquaVision : Sea-Bream AI Monitoring System 🐟⚓
+# AquaVision Sea-Bream AI
 
-AquaVision is an expert-grade aquaculture monitoring platform focused on the precision counting, tracking, and biomass estimation of **Sea Bream** (*Sparus aurata*). This project represents a state-of-the-art implementation of computer vision applied to industrial aquaculture.
+AquaVision is a computer vision system for aquaculture monitoring focused on Sea Bream (`Sparus aurata`). The public release provides a complete local pipeline for fish detection, instance segmentation, multi-object tracking, counting, biomass estimation, and dashboard-based supervision from underwater video.
 
-[![Status](https://img.shields.io/badge/Version-2.4.2_Adaptive-brightgreen)](https://github.com/Dourayed-Smari/Aquavision-seabream-AI)
-[![Framework](https://img.shields.io/badge/AI-YOLOv8_|_OpenVino-blueviolet)](https://github.com/ultralytics/ultralytics)
-[![Tracking](https://img.shields.io/badge/Tracking-ByteTrack_|_SU--T-blue)](https://github.com/ifzhang/ByteTrack)
+[![Status](https://img.shields.io/badge/Release-Public_2026-brightgreen)](https://github.com/Dourayed-Smari/Aquavision-seabream-AI)
+[![Model](https://img.shields.io/badge/Model-YOLO11m--seg-blue)](https://github.com/ultralytics/ultralytics)
+[![Tracking](https://img.shields.io/badge/Tracking-ByteTrack-blue)](https://github.com/ifzhang/ByteTrack)
 
----
+## Pipeline overview
 
-## 🌊 Core Components of the Pipeline
+The current release is built around four main components:
 
-The system utilizes a multi-stage pipeline designed for robustness in challenging underwater environments:
+1. `YOLO11m-seg` for fish detection and instance segmentation in underwater scenes.
+2. `ByteTrack` for temporal identity tracking across video frames.
+3. A biomass estimation module that combines geometric measurements, calibration logic, and temporal smoothing.
+4. A Flask dashboard for video supervision and live indicator display.
 
-### 1. Object Detection (YOLOv8)
-Powered by a custom-trained **YOLOv8m** model optimized for the specific morphology of Sea Bream. The weights in `best+.pt` were trained on **Kaggle** for over **11 hours** using a high-resolution input of **`imgsz=1024`**. This extensive training ensures high precision for detecting small features and overlapping individuals even in low-visibility underwater environments.
+## Repository contents
 
-### 2. Multi-Object Tracking (MOT)
-The current stable release is strictly powered by **ByteTrack**. Other architectures were tested but are currently **inactive** and preserved for research purposes only:
-*   **ByteTrack (STABLE | DEFAULT)** : High performance and identity stability in dense schools.
-*   **BoT-SORT (Testing Phase)** : Observed improved identity but higher latency. Currently inactive.
-*   **SU-T (Experimental Research)** : Scale-aware Unscented Tracker using UKF filters. Specialized research module, currently inactive in the main branch (see `core/trackers/`).
+This public repository already includes:
 
-### 3. Deep-Z Biomass Estimation (v2.4)
-Our proprietary biomass module solves the 2D depth ambiguity through:
-*   **Population-Pull Logic** : Normalizes individual weight estimates toward the session's lot median, ensuring biological consistency across the entire cage.
-*   **Hyperbolic Perspective Correction** : A 40% depth compensation factor ($K_{depth}$) that restores the true weight of far-away fish.
-*   **Adaptive Auto-Calibration** : Dynamic $PX \to CM$ ratio adjustment triggered after 10 validated detections.
+- the pretrained segmentation model at `weights/bestmodel1.pt`
+- three demonstration videos in `results/`
+  - `AquaVision_Report_20260517_195747.mp4`
+  - `AquaVision_Report_20260518_181423.mp4`
+  - `AquaVision_Report_20260519_115305.mp4`
 
----
+The main application entry points are:
 
-## 🚀 Getting Started
+- `core/Mainfishcount.py` for the local processing pipeline
+- `dashboard/app.py` for the Flask supervision interface
 
-### 📦 Installation
-1.  **Clone the Repository** :
-    ```bash
-    git clone https://github.com/Dourayed-Smari/Aquavision-seabream-AI.git
-    ```
-2.  **Install Requirements** :
-    ```bash
-    pip install -r requirements.txt
-    ```
-3.  **Download AI Weights** : 
-    Download the trained model `best+.pt` and place it in the `weights/` directory.
-    🔗 **[DOWNLOAD MODEL (Google Drive)](https://drive.google.com/file/d/1BokebUAWlyLInyMWO0Htdl-LMFQwedU9/view?usp=drive_link)**
+## Setup
 
-### 📈 Running the System
+Clone the repository and install the Python dependencies:
+
+```bash
+git clone https://github.com/Dourayed-Smari/Aquavision-seabream-AI.git
+cd Aquavision-seabream-AI
+pip install -r requirements.txt
+```
+
+For the dashboard session secret, define an environment variable before launch:
+
+```bash
+set FLASK_SECRET_KEY=your_secret_key_here
+```
+
+## Run
+
+Run the local pipeline:
+
 ```bash
 python core/Mainfishcount.py
 ```
 
----
+Run the Flask dashboard:
 
-## 📑 Key Features
-*   **Adaptive UI** : Real-time status indicators (CALIBRATING vs STABLE) and high-visibility Cyan safety alerts.
-*   **Biological Safety Valve** : Automatic clipping of outliers (100g - 1200g) to prevent perspective-induced errors.
-*   **Cinematic Reporting** : Automatic export of results to `results/` with CSV logs and MP4 summaries including **Extreme Slow-Mo Ramping** on detection events.
+```bash
+python dashboard/app.py
+```
 
----
+## Technical highlights
 
-## ⚖️ Acknowledgments & Legal
-This project stands on the shoulders of giants. We wish to dedicate a special credit to the **SU-T (Scale-aware Unscented Tracker)** architecture. Our experimental phase deeply utilized the UKF-based orientation and scale estimation logic for high-precision underwater tracking.
+- Underwater fish segmentation using `YOLO11m-seg`
+- Identity-preserving tracking with `ByteTrack`
+- Biomass estimation based on calibrated morphometric features
+- Local execution oriented toward practical aquaculture supervision workflows
 
-All tracking modules and biological constraints have been tailored for the specific needs of Mediterranean Sea Bream aquaculture.
+## Public release scope
 
----
-*Maintained by Dourayed Smari | AquaVision AI Team 2026*
+This release contains the production-oriented codebase and selected demonstration assets only. Private engineering documents, LaTeX report sources, internal notes, and experimental development copies are excluded from publication.
+
+## License
+
+See `LICENSE` for repository licensing information.

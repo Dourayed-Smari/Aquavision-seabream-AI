@@ -43,28 +43,57 @@
 
     body {
         font-family: 'Outfit', sans-serif;
-        background: linear-gradient(135deg, var(--bg) 0%, var(--bg2) 100%);
+        background: var(--bg);
         color: var(--text);
         min-height: 100vh;
         padding: 2rem 2rem 4rem;
         transition: background 0.5s ease, color 0.5s ease;
         position: relative;
     }
+    /* Vignette for depth */
+    body::after {
+        content: '';
+        position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        background: radial-gradient(ellipse at 50% 40%, transparent 50%, rgba(2,6,23,0.65) 100%);
+    }
+    html.light body::after { display: none; }
 
-    /* ── Glass Card ─────────────────────────────────────── */
+    /* ── Glass Card (Crystal Edition) ───────────────── */
     .card {
         background: var(--card);
         border: 1px solid var(--card-border);
         border-radius: 1.75rem;
         backdrop-filter: blur(24px);
-        box-shadow: 0 8px 40px rgba(0,0,0,0.2);
-        transition: transform .35s ease, border-color .35s ease, box-shadow .35s ease;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04);
+        transition: transform .35s ease, box-shadow .35s ease;
+        position: relative;
     }
-    .card:hover {
-        transform: translateY(-4px);
-        border-color: var(--card-hover);
-        box-shadow: 0 20px 50px rgba(6,182,212,0.1);
+    /* Crystal border — z-index:-1 keeps all child elements clickable */
+    .card::before {
+        content: '';
+        position: absolute; inset: -1px;
+        border-radius: 1.8rem;
+        padding: 1px;
+        background: linear-gradient(135deg, rgba(6,182,212,0.35) 0%, transparent 40%, rgba(139,92,246,0.2) 100%);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude;
+        opacity: 0;
+        transition: opacity .4s ease;
+        pointer-events: none;
+        z-index: -1;
     }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 25px 60px rgba(6,182,212,0.12), inset 0 1px 0 rgba(6,182,212,0.08); }
+    .card:hover::before { opacity: 1; }
+
+    /* Glow pulse when data changes */
+    @keyframes cardPulse {
+        0%   { box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+        50%  { box-shadow: 0 0 0 3px rgba(6,182,212,0.3), 0 20px 60px rgba(6,182,212,0.25); }
+        100% { box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+    }
+    .card.pulse { animation: cardPulse .8s ease; }
+    /* Chart canvas stays interactive above card stacking context */
+    #biomassChart { position: relative; z-index: 2; }
 
     /* ── Typography helpers ─────────────────────────────── */
     .font-tech { font-family: 'Michroma', sans-serif; }
@@ -149,12 +178,12 @@
     }
 
 
-    /* ── Mission Control Bar ────────────────────────────── */
+    /* ── Mission Control Bar ─────────────────────────── */
     #mission-bar {
         position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-        background: rgba(2,6,23,.92);
+        background: rgba(2,6,23,.96);
         border-top: 1px solid rgba(6,182,212,.2);
-        backdrop-filter: blur(16px);
+        backdrop-filter: blur(20px);
         padding: .5rem 2rem;
         display: flex; align-items: center; gap: 2.5rem;
         overflow-x: auto;
@@ -195,6 +224,7 @@
         @page { size: A4 portrait; margin: 1.1cm 1.4cm; }
 
         body        { background: white !important; color: #0f172a !important; padding: 0 !important; }
+        body::after { display: none !important; }
         .no-print   { display: none !important; }
         #mission-bar{ display: none !important; }
         #rpt        { display: block !important; }
@@ -327,21 +357,13 @@
             <p class="sub">H2A Groupe · Hardware to Application · Biological Intelligence Division</p>
         </div>
         <div class="meta">
-            <p>REF : AV-SOUSSE-S3-2026</p>
             <p id="rpt-date">—</p>
-            <p>Latitude 35.8256°N · Longitude 10.6369°E</p>
         </div>
     </div>
 
     <!-- Certified annotated frame -->
     <img class="rpt-img" id="rpt-snapshot" src="" alt="Frame certifiée — analyse IA complète">
 
-    <!-- Session info strip -->
-    <div class="rpt-strip">
-        <div><p class="label">Localisation</p><p class="value">Sousse Coastal | Sector S3 — Cage B07</p></div>
-        <div><p class="label">Statut Session</p><p class="value">STABLE (AUTO-CALIBRATED)</p></div>
-        <div><p class="label">Moteur</p><p class="value">Regression-ML v3.0.4 · R²=0.9830</p></div>
-    </div>
 
     <!-- 2×2 metrics -->
     <div class="rpt-grid">
@@ -491,6 +513,13 @@
                                  animation:gpsPing 1.4s ease infinite;display:inline-block;"></span>
                     <span class="font-data" style="font-size:.58rem;color:white;letter-spacing:.18em;text-transform:uppercase;">Vision IA Live</span>
                 </div>
+                <!-- HUD corners (military style) -->
+                <div style="position:absolute;inset:.6rem;pointer-events:none;">
+                    <div style="position:absolute;top:0;left:0;width:18px;height:18px;border-top:2px solid rgba(6,182,212,0.7);border-left:2px solid rgba(6,182,212,0.7);border-radius:2px 0 0 0;"></div>
+                    <div style="position:absolute;top:0;right:0;width:18px;height:18px;border-top:2px solid rgba(6,182,212,0.7);border-right:2px solid rgba(6,182,212,0.7);border-radius:0 2px 0 0;"></div>
+                    <div style="position:absolute;bottom:0;left:0;width:18px;height:18px;border-bottom:2px solid rgba(6,182,212,0.7);border-left:2px solid rgba(6,182,212,0.7);border-radius:0 0 0 2px;"></div>
+                    <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;border-bottom:2px solid rgba(6,182,212,0.7);border-right:2px solid rgba(6,182,212,0.7);border-radius:0 0 2px 0;"></div>
+                </div>
             </div>
         </div>
 
@@ -588,6 +617,8 @@
 
 <!-- MISSION CONTROL BAR -->
 <div id="mission-bar" class="no-print">
+    <div class="mc-item"><span class="mc-status-dot"></span><span class="mc-val" style="color:var(--emerald);">OPERATIONAL</span></div>
+    <div class="mc-separator"></div>
     <div class="mc-item"><span>FRAME</span> <span class="mc-val" id="mc-frame">0</span></div>
     <div class="mc-separator"></div>
     <div class="mc-item"><span>LATENCY</span> <span class="mc-val" id="mc-lat">— ms</span></div>
@@ -599,9 +630,10 @@
     <div class="mc-item"><span>UPTIME</span> <span class="mc-val" id="mc-uptime">00:00:00</span></div>
     <div class="mc-separator"></div>
     <div class="mc-item" style="margin-left:auto;">
-        <span class="mc-val" style="color:var(--emerald);">● H2A Groupe · AquaVision Core v10.0</span>
+        <span class="mc-val" style="color:var(--accent);letter-spacing:.12em;">H2A GROUPE · AQUAVISION GALAXY EDITION v11.0</span>
     </div>
 </div>
+
 
 
 <!-- ═══════════════════════════════════════════════════════
@@ -730,34 +762,72 @@ function updateChartTheme() {
 let calibrationDrawn = false;
 let calibrationX     = null;
 
-/* ───── REAL-TIME SYNC ─────────────────────────────── */
+/* ─── ODOMETER — Animated counter ───────────────────── */
+const odometerState = {};
+function animateTo(elementId, target, decimals = 0, duration = 600) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const raw   = parseFloat(el.textContent.replace(/[^\d.-]/g, ''));
+    const start = odometerState.hasOwnProperty(elementId)
+                  ? odometerState[elementId]
+                  : (isNaN(raw) ? 0 : raw);
+    const diff  = target - start;
+    // Always write target even if diff is tiny (ensures first paint)
+    if (Math.abs(diff) < 0.001) {
+        el.textContent = decimals > 0 ? Number(target).toFixed(decimals) : Math.round(target);
+        odometerState[elementId] = target;
+        return;
+    }
+    odometerState[elementId] = target; // lock to prevent re-entry
+    const startTs = performance.now();
+    function step(now) {
+        const progress = Math.min((now - startTs) / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+        const val  = start + diff * ease;
+        el.textContent = decimals > 0 ? val.toFixed(decimals) : Math.round(val);
+        if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+}
+
+/* ─── Card Glow Pulse ───────────────────────────── */
+function pulseCard(id) {
+    const card = document.getElementById(id);
+    if (!card) return;
+    card.classList.remove('pulse');
+    void card.offsetWidth; // force reflow
+    card.classList.add('pulse');
+    setTimeout(() => card.classList.remove('pulse'), 800);
+}
+
+/* ─── REAL-TIME SYNC ────────────────────────────── */
 let lastCount = 0;
-let sonarTimeout = null;
 
 setInterval(async () => {
     try {
         const d = await (await fetch('/get_metrics')).json();
 
-        /* Counters */
+        /* Counters — Odometer animation */
         const fc = +d.fish_count;
         const aw = +d.avg_weight;
         const tb = +d.total_biomass;
 
-        document.getElementById('fish-count').textContent    = fc;
-        document.getElementById('avg-weight').textContent    = aw;
-        document.getElementById('total-biomass').textContent = tb.toFixed(2);
+        animateTo('fish-count',    fc,   0, 500);
+        animateTo('avg-weight',    aw,   0, 500);
+        animateTo('total-biomass', tb,   2, 600);
 
-        /* Capacity */
+        /* Capacity bar */
         const pct = Math.min((tb / 30) * 100, 100).toFixed(1);
         document.getElementById('biomass-bar').style.width     = pct + '%';
         document.getElementById('biomass-percent').textContent = pct + '%';
 
-        /* Sonar ping when fish_count increases */
+        /* Sonar ping + GLOW PULSE when fish_count increases */
         if (fc > lastCount) {
             const el = document.getElementById('fish-count');
             el.style.transform = 'scale(1.18)';
             el.style.color     = '#06B6D4';
             setTimeout(() => { el.style.transform = ''; el.style.color = ''; }, 320);
+            pulseCard('card-pop');
 
             // Sonar ring burst
             const host = document.getElementById('sonar-host');

@@ -2,9 +2,9 @@
 # Optimized for high density and boundary stability
 
 tracker_type: bytetrack  # tracker type, ['bytetrack']
-track_high_thresh: 0.1 
-track_low_thresh: 0.05  
-new_track_thresh: 0.1  
-track_buffer: 240       # Mémoire longue durée (8 secondes) pour les longues disparitions
-match_thresh: 0.8       # Plus tolérant pour garder l'ID après une disparition
+track_high_thresh: 0.15  # Rehaussé à 0.15 pour s'aligner sur le seuil YOLO de Mainfishcount.py
+track_low_thresh: 0.05   # Conserve les poissons connus même si la confiance baisse fortement
+new_track_thresh: 0.20   # Exige 0.20 pour créer un nouvel ID stable
+track_buffer: 240        # Toujours 8 secondes de mémoire pour passer les longues occlusions
+match_thresh: 0.78       # Serré de 0.85 à 0.78 pour interdire le vol d'identité lors des croisements
 fuse_score: True        
